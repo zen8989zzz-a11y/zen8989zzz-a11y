@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A letter for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+/* ===== COLOURS: change these to restyle everything ===== */
+:root{
+  --bg:#2a1830;        /* page background (top) */
+  --bg2:#4a2142;       /* page background (glow) */
+  --env:#ecccc6;       /* envelope front */
+  --env-dark:#d7aca6;  /* envelope back and flap */
+  --paper:#fbf1ee;     /* letter paper */
+  --ink:#34264a;       /* letter text */
+  --wax:#a8213d;       /* wax seal, buttons, accents */
+  --wax-dark:#7d1730;
+  --script:"Pinyon Script","Snell Roundhand","Brush Script MT",cursive;
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:radial-gradient(ellipse at 50% 30%,var(--bg2),var(--bg) 70%) fixed;
+  color:var(--ink);font-family:var(--serif);
+}
+.stage{min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:28px 16px;overflow-x:hidden}
+.center{display:flex;flex-direction:column;align-items:center;gap:28px}
+
+/* ---------- envelope ---------- */
+.env{position:relative;width:min(86vw,380px);aspect-ratio:3/2;perspective:900px;transition:opacity .6s,transform .6s}
+.env.away{opacity:0;transform:translateY(40px)}
+.env>*{position:absolute}
+.back{inset:0;background:var(--env-dark);border-radius:6px;z-index:0}
+.front{inset:0;background:var(--env);border-radius:6px;z-index:2;
+  clip-path:polygon(0 0,50% 52%,100% 0,100% 100%,0 100%);filter:drop-shadow(0 -1px 0 rgba(0,0,0,.08))}
+.flap{left:0;top:0;width:100%;height:55%;background:var(--env-dark);z-index:3;
+  clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;
+  transition:transform .7s ease,z-index 0s;box-shadow:0 6px 12px rgba(0,0,0,.2)}
+.open .flap{transform:rotateX(180deg);z-index:1;transition:transform .7s ease,z-index 0s .35s}
+.addr{left:0;right:0;bottom:12%;text-align:center;font-family:var(--script);font-size:clamp(1.5rem,6vw,2rem);color:var(--wax-dark);z-index:3}
+.seal{left:50%;top:52%;width:62px;height:62px;margin:-31px 0 0 -31px;z-index:4;border:0;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#c93a55,var(--wax) 55%,var(--wax-dark));
+  color:#f6d7dc;font-size:1.7rem;line-height:1;box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 0 0 4px rgba(0,0,0,.08);
+  transition:transform .2s,opacity .35s}
+.seal:hover{transform:scale(1.08)}
+.seal:focus-visible,button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.open .seal{opacity:0;transform:scale(.4);pointer-events:none}
+.hint{margin:0;color:#e9c9d2;font-size:1.15rem;font-style:italic;transition:opacity .4s}
+
+/* ---------- letter ---------- */
+.letter{width:min(100%,540px);background:var(--paper);border-radius:4px;padding:clamp(26px,6vw,48px);
+  box-shadow:0 18px 50px rgba(0,0,0,.45);opacity:0;transform:translateY(30px) rotate(-.8deg);transition:opacity .8s,transform .8s}
+.letter[hidden]{display:none}
+.letter.show{opacity:1;transform:none}
+.to{font-family:var(--script);font-size:clamp(2.2rem,8vw,3rem);font-weight:400;margin:0 0 .6em;color:var(--wax-dark)}
+.para{margin:0 0 1.1em;font-size:clamp(1.2rem,4.4vw,1.4rem);line-height:1.6;white-space:pre-line;max-height:0;opacity:0;overflow:hidden;
+  transition:opacity .9s,max-height .9s}
+.para.in,.fade.in{opacity:1;max-height:600px}
+.fade{opacity:0;transition:opacity 1s}
+.fade[hidden]{display:none}
+.more,.btn{font:inherit;font-size:1.2rem;cursor:pointer;color:var(--wax);background:none;border:0;border-bottom:1.5px solid var(--wax);padding:2px 0}
+.more:hover{color:var(--wax-dark);border-color:var(--wax-dark)}
+.signoff{font-style:italic;font-size:1.3rem;margin:1em 0 0}
+.from{font-family:var(--script);font-size:2.2rem;margin:.1em 0 0;color:var(--wax-dark)}
+.ask{margin-top:1.6em;padding-top:1.4em;border-top:1px solid rgba(52,38,74,.2);text-align:center}
+.ask p{font-size:1.5rem;margin:0 0 .9em;font-weight:600}
+.btns{display:flex;gap:18px;justify-content:center;align-items:center;min-height:64px}
+.btn{border:0;border-radius:999px;padding:.55em 1.6em;color:#fff;background:var(--wax);box-shadow:0 3px 0 var(--wax-dark);transition:transform .2s}
+.btn.no{background:#6f6580;box-shadow:0 3px 0 #50476a}
+.btn.free{position:fixed;z-index:20;transition:left .25s,top .25s}
+.reply{font-family:var(--script);font-size:2.2rem;text-align:center;color:var(--wax);margin:.6em 0 0}
+
+/* ---------- hearts ---------- */
+.heart{position:fixed;bottom:-40px;color:var(--wax);pointer-events:none;z-index:30;animation:rise linear forwards}
+@keyframes rise{to{transform:translateY(-115vh) rotate(25deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01s!important}
+}
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="center" id="intro">
+    <div class="env" id="env">
+      <div class="back"></div>
+      <div class="front"></div>
+      <div class="addr" id="addr"></div>
+      <div class="flap"></div>
+      <button class="seal" id="seal" aria-label="Open the letter"><span id="sealMark"></span></button>
+    </div>
+    <p class="hint" id="hint"></p>
+  </div>
+
+  <article class="letter" id="letter" hidden>
+    <h1 class="to" id="to"></h1>
+    <div id="body"></div>
+    <p><button class="more" id="more"></button></p>
+    <div class="fade" id="end" hidden>
+      <p class="signoff" id="signoff"></p>
+      <p class="from" id="from"></p>
+      <div class="ask" id="ask" hidden>
+        <p id="question"></p>
+        <div class="btns">
+          <button class="btn yes" id="yes"></button>
+          <button class="btn no" id="no"></button>
+        </div>
+      </div>
+      <p class="reply" id="reply" hidden></p>
+    </div>
+  </article>
+</main>
+
+<script>
+/* ===== CUSTOMISE YOUR LETTER HERE ===== */
+const LETTER = {
+  pageTitle: "A letter for you",
+  envelopeText: "For Akeesha",          // written on the envelope
+  sealMark: "♥",                      // try an initial, e.g. "A"
+  hint: "Tap the seal to open",
+  greeting: "Dear Akeesha",
+  paragraphs: [                       // add, remove or edit as many as you like
+    "Hiii! I know I already told you before kung ano yung feelings ko. Malinaw naman sakin yung sinabi mo na hanggang friends lng tayo. Pero here I am I want to confess my feelings and try again .",
+    "Ayoko naman na maramdaman mo na pinipilit kita o nakukulitan ka. Gusto ko lng na malaman mo na yung cofession ko sayo noon. Hindi yon trip trip lng. Seryoso ako sayo. To be honest nagustuhan kita noong first day of G9 eh. Kaya ako laging nag jo joke or nang uukit para mapalapit sayo.Makita lng kitang masaya buong buo na araw ko... ",
+    "I dont want to put any pressure on you. Gusto ko lng maging honest sayo once more. Na nandito parin ako and hindi parin nawawala ang feelings ko para sayo. I just wanna ask if i could court you? I am willing to wait till you develop your feelings for me."
+  ],
+  moreButton: "Keep reading",
+  signoff: "Always yours,",
+  from: "Zenon",
+  question: "Can I court you?",   // set to "" to skip the question
+  yes: "Yes",
+  no: "No",
+  noDodges: true,                     // the "No" button runs away
+  yesReply: "Good day. See you soon!"
+};
+/* ===== END OF CUSTOMISING ===== */
+
+const $ = id => document.getElementById(id);
+document.title = LETTER.pageTitle;
+$('addr').textContent = LETTER.envelopeText;
+$('sealMark').textContent = LETTER.sealMark;
+$('hint').textContent = LETTER.hint;
+$('to').textContent = LETTER.greeting;
+$('more').textContent = LETTER.moreButton;
+$('signoff').textContent = LETTER.signoff;
+$('from').textContent = LETTER.from;
+$('question').textContent = LETTER.question;
+$('yes').textContent = LETTER.yes;
+$('no').textContent = LETTER.no;
+$('reply').textContent = LETTER.yesReply;
+
+const body = $('body');
+LETTER.paragraphs.forEach(t => {
+  const p = document.createElement('p');
+  p.className = 'para';
+  p.textContent = t;
+  body.appendChild(p);
+});
+
+let shown = 0;
+function reveal() {
+  const paras = body.children;
+  paras[shown].classList.add('in');
+  paras[shown].scrollIntoView({behavior:'smooth', block:'center'});
+  shown++;
+  if (shown >= paras.length) {
+    $('more').parentElement.hidden = true;
+    const end = $('end');
+    end.hidden = false;
+    setTimeout(() => end.classList.add('in'), 700);
+    if (LETTER.question) $('ask').hidden = false;
+  }
+}
+$('more').addEventListener('click', reveal);
+
+$('seal').addEventListener('click', () => {
+  $('env').classList.add('open');
+  $('hint').style.opacity = 0;
+  setTimeout(() => $('env').classList.add('away'), 900);
+  setTimeout(() => {
+    $('intro').hidden = true;
+    $('letter').hidden = false;
+    requestAnimationFrame(() => $('letter').classList.add('show'));
+    reveal();
+  }, 1500);
+});
+
+/* the "No" button runs away, and "Yes" grows */
+let dodges = 0;
+function dodge(e) {
+  if (!LETTER.noDodges) return;
+  e.preventDefault();
+  const no = $('no'), r = no.getBoundingClientRect();
+  dodges++;
+  no.classList.add('free');
+  no.style.left = (12 + Math.random() * (innerWidth - r.width - 24)) + 'px';
+  no.style.top = (12 + Math.random() * (innerHeight - r.height - 24)) + 'px';
+  $('yes').style.transform = 'scale(' + Math.min(1 + dodges * 0.12, 1.8) + ')';
+}
+$('no').addEventListener('pointerenter', dodge);
+$('no').addEventListener('click', dodge);
+
+$('yes').addEventListener('click', () => {
+  $('ask').hidden = true;
+  $('no').classList.remove('free');
+  $('reply').hidden = false;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (let i = 0; i < 28; i++) {
+    const h = document.createElement('span');
+    h.className = 'heart';
+    h.textContent = '♥';
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = (16 + Math.random() * 28) + 'px';
+    h.style.animationDuration = (3 + Math.random() * 3) + 's';
+    h.style.animationDelay = (Math.random() * 1.2) + 's';
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 8000);
+  }
+});
+</script>
+</body>
+</html>
